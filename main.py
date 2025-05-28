@@ -51,11 +51,14 @@ def preprocess_data(df):
     df['Sentence'] = junk_cleaned
     return df['Sentence'], df['Label']
 
-train_data = pd.read_csv("finance_train.csv")
-test_data = pd.read_csv("finance_test.csv")
+data = pd.read_csv("data.csv")
+sentiment_map = { 'negative': 0, 'neutral': 1, 'positive': 2 }
+data['Label'] = data["Sentiment"].map(sentiment_map)
+data = data.drop(columns=["Sentiment"])
+train_data, test_data = train_test_split(data, test_size=0.2, random_state=42, stratify=data['Label'])
 
 train_sentences, train_labels = preprocess_data(train_data)
-
+test_seentences, test_labels = preprocess_data(test_data)
 
 def train_model(train_sentences, train_labels):
     train_sentences = [" ".join(t) for t in train_sentences]
@@ -72,3 +75,17 @@ def train_model(train_sentences, train_labels):
 
     return model, vectorizer
 
+train_model, vectorizer = train_model(train_sentences, train_labels)
+def predict(model, vectorizer, test_sentences, test_labels):
+    test_sentences = [" ".join(t) for t in test_sentences]
+    test_vect = vectorizer.transform(test_sentences)
+    predictions = model.predict(test_vect)
+    accuracy = sklearn.metrics.accuracy_score(test_labels, predictions)
+    return predictions, accuracy
+
+manual_entry = ["after the financial crisis of 2008 many companies were forced to restructure their debts and operations to survive, while many banks needed gavernment bailouts to avoid bankruptcy", "after a record high third quarter, AKAM is expected to grow its revenue in the cloud computing sector by over 20% within the next year", "after many experts came out and brought up points of how quantumn computing is not expected to be a sustainable industry for next few decades, IonQ is expected to drop significantly in the next few months"]
+manual_entry_labels = [0,2,0]
+manual_entry_df = pd.DataFrame({'Sentence': manual_entry, 'Label': manual_entry_labels})
+manual_entry_sentences, manual_entry_labels = preprocess_data(manual_entry_df)
+predictions, accuracy = predict(train_model, vectorizer, test_seentences, test_labels)
+print("Accuracy:", accuracy)
