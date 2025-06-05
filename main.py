@@ -72,7 +72,6 @@ def preprocess_data(df):
 df1 = pd.read_csv("newData.csv")
 df2 = pd.read_csv("data.csv")
 df3 = pd.read_csv("all-data.csv")
-
 sentiment_map = {'negative': 0, 'neutral': 1, 'positive': 2 }
 
 df2['Label'] = df2['Sentiment'].map(sentiment_map)
@@ -85,6 +84,7 @@ data_1 = data_1.drop(columns=['Label'])
 
 data = pd.merge(data_1[['Sentence', 'Label_df1']], df3[['Sentence', 'Label']], on='Sentence', how='inner')
 data = data.drop(columns=['Label_df1'])
+data = data[data['Label'].isin([0, 2])]
 
 train_data, test_data = train_test_split(data, test_size=0.2, random_state=42, stratify=data['Label'])
 
